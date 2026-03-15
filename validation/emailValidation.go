@@ -3,6 +3,7 @@ package validation
 import (
 	"fmt"
 	"mailer/logger"
+	"slices"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
@@ -16,6 +17,14 @@ type EmailData struct {
 	Config  Config `json:"config" validate:"required"`
 }
 
+type EmailDataWithTarget struct {
+	To      string `json:"to" validate:"required"`
+	From    string `json:"from" validate:"required"`
+	Subject string `json:"subject" validate:"required"`
+	Body    string `json:"body" validate:"required"`
+	Target  string `json:"target" validate:"required"`
+}
+
 type Config struct {
 	Host     string `json:"host" validate:"required"`
 	Port     int    `json:"port" validate:"required"`
@@ -24,9 +33,9 @@ type Config struct {
 }
 
 type DefaultHttpResponse struct {
-	Status  interface{} `json:"status"`
-	Message string      `json:"message"`
-	Data    interface{} `json:"data,omitempty"`
+	Status  any    `json:"status"`
+	Message string `json:"message"`
+	Data    any    `json:"data,omitempty"`
 }
 
 type IErrorST struct {
@@ -57,6 +66,40 @@ func ValidateSendEmail(c *fiber.Ctx) error {
 		log.Errorln(err)
 		errorResponse := convertValidationErrorToHTTPError(errors)
 		errorResponse.Status = fiber.StatusBadRequest
+		return c.Status(fiber.StatusBadRequest).JSON(errorResponse)
+	}
+
+	return c.Next()
+}
+
+func ValidateSendEmailWithTarget(c *fiber.Ctx) error {
+	var errors []*IErrorST
+	body := new(EmailDataWithTarget)
+	c.BodyParser(&body)
+
+	err := ValidatorObj.Struct(body)
+	if err != nil {
+		for _, err := range err.(validator.ValidationErrors) {
+			var el IErrorST
+			el.Field = err.Field()
+			el.Tag = err.Tag()
+			el.ErrorMessage = err.Error()
+			errors = append(errors, &el)
+		}
+
+		log.Errorln("(ValidateSendEmail) Validation Failed")
+		log.Errorln(err)
+		errorResponse := convertValidationErrorToHTTPError(errors)
+		errorResponse.Status = fiber.StatusBadRequest
+		return c.Status(fiber.StatusBadRequest).JSON(errorResponse)
+	}
+
+	if slices.Contains(AllowedTargets, body.Target) == false {
+		log.Errorln("(ValidateSendEmailWithoutConfig) Validation Failed: Invalid target query parameter")
+		errorResponse := DefaultHttpResponse{
+			Status:  fiber.StatusBadRequest,
+			Message: "Invalid target query parameter",
+		}
 		return c.Status(fiber.StatusBadRequest).JSON(errorResponse)
 	}
 

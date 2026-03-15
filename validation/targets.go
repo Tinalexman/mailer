@@ -1,0 +1,3 @@
+package validation
+
+var AllowedTargets = []string{"raso-contact", "raso-bookings", "raso-services"}

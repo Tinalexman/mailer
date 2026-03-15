@@ -12,13 +12,6 @@ import (
 
 var log = myLogger.Logger()
 
-type config struct {
-	Host     string
-	Port     int
-	Username string
-	Password string
-}
-
 func Email_Controller(api fiber.Router) {
 
 	api.Post("/", validation.ValidateSendEmail, func(c *fiber.Ctx) error {
@@ -39,12 +32,12 @@ func Email_Controller(api fiber.Router) {
 		})
 	})
 
-	api.Post("/raso-group", validation.ValidateSendEmailWithoutConfig, func(c *fiber.Ctx) error {
+	api.Post("/target", validation.ValidateSendEmailWithTarget, func(c *fiber.Ctx) error {
 
-		var data validation.EmailDataWithoutConfig
+		var data validation.EmailDataWithTarget
 		c.BodyParser(&data)
 
-		if err := sendEmailWithoutConfig(data); err != nil {
+		if err := sendEmailWithTarget(data); err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(validation.DefaultHttpResponse{
 				Status:  fiber.StatusBadRequest,
 				Message: err.Error(),
@@ -77,7 +70,7 @@ func sendEmail(data validation.EmailData) error {
 	return nil
 }
 
-func sendEmailWithoutConfig(data validation.EmailDataWithTarget) error {
+func sendEmailWithTarget(data validation.EmailDataWithTarget) error {
 	m := gomail.NewMessage()
 	m.SetHeader("From", data.From)
 	m.SetHeader("To", data.To)
@@ -125,6 +118,13 @@ func getConfig(target string) (validation.Config, error) {
 			Port:     465,
 			Username: os.Getenv("RASO_SERVICES_USERNAME"),
 			Password: os.Getenv("RASO_SERVICES_PASSWORD"),
+		}
+	case "apata-iye-contact":
+		config = validation.Config{
+			Host:     "wghp2.wghservers.com",
+			Port:     465,
+			Username: os.Getenv("APATA_IYE_CONTACT_USERNAME"),
+			Password: os.Getenv("APATA_IYE_CONTACT_PASSWORD"),
 		}
 	default:
 		return validation.Config{}, fmt.Errorf("invalid target: %s", target)

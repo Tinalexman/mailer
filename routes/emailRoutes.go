@@ -127,7 +127,7 @@ func getConfig(target string) (validation.Config, error) {
 	case "raso-contact":
 		config = validation.Config{
 			Host:     "rasogroup.co.uk",
-			Port:     465,
+			Port:     2525,
 			Username: os.Getenv("RASO_CONTACT_USERNAME"),
 			Password: os.Getenv("RASO_CONTACT_PASSWORD"),
 		}

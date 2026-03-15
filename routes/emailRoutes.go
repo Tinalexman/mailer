@@ -6,7 +6,6 @@ import (
 	myLogger "mailer/logger"
 	"mailer/validation"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -79,7 +78,7 @@ func sendEmail(data validation.EmailData) error {
 func sendEmailWithTarget(data validation.EmailDataWithTarget) error {
 
 	envKey := ""
-	if strings.HasPrefix(data.Target, "raso") {
+	if data.Target == "raso" {
 		envKey = "RASO_MAILERSEND_API"
 	} else {
 		return fmt.Errorf("invalid target: %s", data.Target)

@@ -3,7 +3,6 @@ package validation
 import (
 	"fmt"
 	"mailer/logger"
-	"slices"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
@@ -91,15 +90,6 @@ func ValidateSendEmailWithTarget(c *fiber.Ctx) error {
 		log.Errorln(err)
 		errorResponse := convertValidationErrorToHTTPError(errors)
 		errorResponse.Status = fiber.StatusBadRequest
-		return c.Status(fiber.StatusBadRequest).JSON(errorResponse)
-	}
-
-	if slices.Contains(AllowedTargets, body.Target) == false {
-		log.Errorln("(ValidateSendEmailWithoutConfig) Validation Failed: Invalid target query parameter")
-		errorResponse := DefaultHttpResponse{
-			Status:  fiber.StatusBadRequest,
-			Message: "Invalid target query parameter",
-		}
 		return c.Status(fiber.StatusBadRequest).JSON(errorResponse)
 	}
 

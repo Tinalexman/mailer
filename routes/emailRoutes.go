@@ -60,6 +60,7 @@ func sendEmail(data validation.EmailData) error {
 	m.SetBody("text/plain", data.Body)
 
 	d := gomail.NewDialer(data.Config.Host, data.Config.Port, data.Config.Username, data.Config.Password)
+	d.SSL = true
 
 	if err := d.DialAndSend(m); err != nil {
 		log.Errorln("Error sending email:", err)
@@ -84,6 +85,7 @@ func sendEmailWithTarget(data validation.EmailDataWithTarget) error {
 	}
 
 	d := gomail.NewDialer(config.Host, config.Port, config.Username, config.Password)
+	d.SSL = true
 
 	if err := d.DialAndSend(m); err != nil {
 		log.Errorln("Error sending email:", err)

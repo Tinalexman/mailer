@@ -85,7 +85,7 @@ func sendEmailWithTarget(data validation.EmailDataWithTarget) error {
 	}
 
 	d := gomail.NewDialer(config.Host, config.Port, config.Username, config.Password)
-	// d.SSL = true
+	d.SSL = false
 
 	if err := d.DialAndSend(m); err != nil {
 		log.Errorln("Error sending email:", err)
@@ -102,7 +102,7 @@ func getConfig(target string) (validation.Config, error) {
 	switch target {
 	case "raso-contact":
 		config = validation.Config{
-			Host:     "rasogroup.co.uk",
+			Host:     "mail.rasogroup.co.uk",
 			Port:     587,
 			Username: os.Getenv("RASO_CONTACT_USERNAME"),
 			Password: os.Getenv("RASO_CONTACT_PASSWORD"),

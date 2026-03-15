@@ -4,7 +4,9 @@ import (
 	"fmt"
 	myLogger "mailer/logger"
 	"mailer/validation"
+	"net"
 	"os"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"gopkg.in/gomail.v2"
@@ -32,6 +34,8 @@ func Email_Controller(api fiber.Router) {
 		})
 	})
 
+	api.Post("/ping", PingMailServer)
+
 	api.Post("/target", validation.ValidateSendEmailWithTarget, func(c *fiber.Ctx) error {
 
 		var data validation.EmailDataWithTarget
@@ -50,6 +54,26 @@ func Email_Controller(api fiber.Router) {
 		})
 	})
 
+}
+
+func PingMailServer(c *fiber.Ctx) error {
+	timeout := 5 * time.Second
+	// Testing the exact IP and Port from your error message
+	conn, err := net.DialTimeout("tcp", "162.0.217.205:465", timeout)
+
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{
+			"connected": false,
+			"error":     err.Error(),
+			"note":      "If this timed out, Render is blocking outbound port 465.",
+		})
+	}
+	conn.Close()
+
+	return c.JSON(fiber.Map{
+		"connected": true,
+		"message":   "Network path to Namecheap is OPEN.",
+	})
 }
 
 func sendEmail(data validation.EmailData) error {
@@ -85,7 +109,7 @@ func sendEmailWithTarget(data validation.EmailDataWithTarget) error {
 	}
 
 	d := gomail.NewDialer(config.Host, config.Port, config.Username, config.Password)
-	d.SSL = false
+	d.SSL = true
 
 	if err := d.DialAndSend(m); err != nil {
 		log.Errorln("Error sending email:", err)
@@ -102,8 +126,8 @@ func getConfig(target string) (validation.Config, error) {
 	switch target {
 	case "raso-contact":
 		config = validation.Config{
-			Host:     "mail.rasogroup.co.uk",
-			Port:     587,
+			Host:     "rasogroup.co.uk",
+			Port:     465,
 			Username: os.Getenv("RASO_CONTACT_USERNAME"),
 			Password: os.Getenv("RASO_CONTACT_PASSWORD"),
 		}

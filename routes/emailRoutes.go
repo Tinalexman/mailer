@@ -112,10 +112,14 @@ func sendEmailWithTarget(data validation.EmailDataWithTarget) error {
 	message.SetSubject(subject)
 	message.SetText(text)
 
-	res, _ := ms.Email.Send(ctx, message)
+	res, err := ms.Email.Send(ctx, message)
 
-	fmt.Printf(res.Header.Get("X-Message-Id"))
+	if err != nil {
+		log.Errorln("Error sending email:", err)
+		return err
+	}
 
+	log.Printf(res.Header.Get("X-Message-Id"))
 	log.Println("Email sent successfully")
 	return nil
 }
